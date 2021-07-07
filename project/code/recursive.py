@@ -53,14 +53,15 @@ class Recursive:
             model = self.model
             history = model.fit(X, y[:,0], epochs=epochs, validation_split=validation_split, callbacks=[stop])
             val_loss = history.history['val_loss'][-1]
+
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 best_model = model
      
         self.model = best_model
 
-    def predict(self, X, scaler):
-        pred = np.empty((X.shape[0],0))
+    def predict(self, X, scaler=None):
+        pred = np.empty((X.shape[0], 0))
         model = self.model
 
         for _ in range(1, self.n_horizons+1):
@@ -72,8 +73,9 @@ class Recursive:
             pred = np.append(pred, a, 1)
             X = np.append(X, a, 1)
             X = np.delete(X, 0, 1)
-  
-        pred = scaler.inverse_transform(pred)
+        
+        if scaler != None:
+            pred = scaler.inverse_transform(pred)
+        
         pred = pd.DataFrame(data={f't+{h}':pred[:,h-1] for h in range(1, self.n_horizons+1)})
-            
         return pred

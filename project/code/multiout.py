@@ -53,19 +53,22 @@ class Multiout:
             model = self.model
             history = model.fit(X, y, epochs=epochs, validation_split=validation_split, callbacks=[stop])
             val_loss = history.history['val_loss'][-1]
+            
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 best_model = model
      
         self.model = best_model
     
-    def predict(self, X, scaler):
+    def predict(self, X, scaler=None):
         if self.type == 'LSTM':
             X = X.reshape((X.shape[0], X.shape[1], 1))
 
         model = self.model
         pred = model.predict(X)
-        pred = scaler.inverse_transform(pred)
-        pred = pd.DataFrame(data={f't+{h}':pred[:,h-1] for h in range(1, self.n_horizons+1)})
-            
+
+        if scaler != None:
+            pred = scaler.inverse_transform(pred)
+
+        pred = pd.DataFrame(data={f't+{h}':pred[:,h-1] for h in range(1, self.n_horizons+1)}) 
         return pred

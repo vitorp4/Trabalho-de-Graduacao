@@ -56,14 +56,15 @@ class Direct:
                 model = self.models[f't+{h}']
                 history = model.fit(X, y[:,h-1], epochs=epochs, validation_split=validation_split, callbacks=[stop])
                 val_loss = history.history['val_loss'][-1]
+
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     best_model = model
      
             self.models[f't+{h}'] = best_model
     
-    def predict(self, X, scaler):
-        pred = np.empty((X.shape[0],0))
+    def predict(self, X, scaler=None):
+        pred = np.empty((X.shape[0], 0))
         if self.type == 'LSTM':
             X = X.reshape((X.shape[0], X.shape[1], 1))
 
@@ -71,7 +72,8 @@ class Direct:
             model = self.models[f't+{h}']
             pred = np.append(pred, model.predict(X), 1)
             
-        pred = scaler.inverse_transform(pred)
+        if scaler != None:
+            pred = scaler.inverse_transform(pred)
+
         pred = pd.DataFrame(data={f't+{h}':pred[:,h-1] for h in range(1, self.n_horizons+1)})
-            
         return pred
