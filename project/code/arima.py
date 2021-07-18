@@ -1,41 +1,51 @@
 import numpy as np
 import pandas as pd
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA as ARIMA_base
+from processing import inverse_scaling
 
-class Arima():
+class ARIMA():
 
-    def __init__(self, n_horizons, order):
-        self.n_horizons = n_horizons
+    def __init__(self, horizons, order):
+        self.horizons = horizons
         self.order = order
 
-    def predict_multiout(self, train, test):
-        pred_matrix = np.empty((0, self.n_horizons))
+    def predict(self, train, test, index=None):
+        if type(train) == pd.Series:
+            train = train.values
+        if type(test) == pd.Series:
+            test = test.values
+
+        pred_matrix = np.empty((0, self.horizons))
         for i in range(len(test)):
-            model = ARIMA(train, order=self.order)
+            model = ARIMA_base(train, order=self.order)
             model = model.fit() 
-            pred_line = model.forecast(steps=self.n_horizons)
+            pred_line = model.forecast(steps=self.horizons)
             pred_matrix = np.concatenate((pred_matrix, pred_line.reshape(1,-1)))
             train = np.append(train, test[i])
 
-        pred_df = pd.DataFrame(data={f't+{h}':pred_matrix[:,h-1] for h in range(1, self.n_horizons+1)}) 
-        return pred_df
+        pred = {}
+        for h in range(1, self.horizons+1):
+            pred_h = pred_matrix[:, h-1]
+            pred[f't+{h}'] = inverse_scaling(pred_h, shifts=h)
+        pred = pd.DataFrame(data=pred)
 
-    def predict_recursive(self, train, test):
-        pred_matrix = np.empty((0, self.n_horizons))
+        if index is not None:
+            pred.index = index
 
-        for i in range(len(test)):
-            train_h = train
-            pred_line = np.array([])
+        return pred
 
-            for _ in range(self.n_horizons):
-                model = ARIMA(train_h, order=self.order)
-                model = model.fit() 
-                pred = model.forecast()
-                train_h = np.append(train_h, pred)
-                pred_line = np.append(pred_line, pred)
-                
-            pred_matrix = np.concatenate((pred_matrix, pred_line.reshape(1,-1)))
-            train = np.append(train, test[i]) 
-        
-        pred_df = pd.DataFrame(data={f't+{h}':pred_matrix[:,h-1] for h in range(1, self.n_horizons+1)}) 
-        return pred_df
+
+# for label, serie in df.items():
+#     plt.figure(figsize=(15,4))
+#     plt.title(label)
+#     plt.plot(serie)
+#     plt.savefig(f'../images/{label}.png')
+
+# for label, serie in df.items():
+#     plot_pacf(serie, title=f'PACF {label}', lags=40)
+#     plt.savefig(f'../images/PACF_{label}.png')
+
+# for label, serie in df.items():
+#     plot_acf(serie, title=f'ACF {label}', lags=100)
+#     plt.savefig(f'../images/ACF_{label}.png')
+

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/vitor/OneDrive/Documentos/GitHub/TG/project/code/mlruns/1/bc3ba6d765684cff9bbdaeacbc9de9fa/artifacts
+end_time: 1626574300211
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: bc3ba6d765684cff9bbdaeacbc9de9fa
+run_uuid: bc3ba6d765684cff9bbdaeacbc9de9fa
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1626574300144
+status: 3
+tags: []
+user_id: vitor
