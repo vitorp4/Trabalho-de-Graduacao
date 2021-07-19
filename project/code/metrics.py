@@ -56,7 +56,7 @@ def metrics_list(pred, obs):
 def metrics_names():
     return ['mse','rmse','bias','mae','mape','corr_coef','std_ratio','rmsd','ss4','std']
 
-def metrics_dict(pred, obs):
+def metrics_dictionary(pred, obs):
     if type(pred) == pd.Series:
         pred = pred.values
     if type(obs) == pd.Series:

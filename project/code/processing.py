@@ -66,7 +66,7 @@ def inverse_scaling(test, scaler=None, shifts=0):
             return scaler.inverse_transform(shift(test, shifts)).reshape(1, -1)[0]
     else:
         if len(test.shape) == 1:
-            return shift(test.reshape(-1, 1), shifts).reshape(1, -1)[0]
+            return shift(test, shifts)
         elif len(test.shape) == 2:
             return shift(test, shifts).reshape(1, -1)[0]
 
@@ -78,13 +78,16 @@ def timeseries_split(serie, groupby='month', train_expand=False, test_size=1, ho
     elif groupby == 'year':
         folders = [group for _, group in serie.groupby(serie.index.year)]
 
-    holdout_folder = pd.concat(folders[-holdout_size:])
-    walkforward_validation = []
+    if train_expand:
+        holdout = (pd.concat(folders[:-holdout_size]), pd.concat(folders[-holdout_size:]))
+    else:
+        holdout = (folders[-holdout_size-1], pd.concat(folders[-holdout_size:]))
 
+    walkforward_validation = []
     for i in range(len(folders)-holdout_size-test_size):
         if train_expand:
             walkforward_validation.append((pd.concat(folders[:i+1]), pd.concat(folders[i+1:i+1+test_size])))
         else:
             walkforward_validation.append((folders[i], pd.concat(folders[i+1:i+1+test_size])))
     
-    return walkforward_validation, holdout_folder
+    return walkforward_validation, holdout
